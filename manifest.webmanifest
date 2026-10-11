@@ -1,0 +1,14 @@
+
+{
+  "id": "./",
+  "name": "Bitácora de Chayote",
+  "short_name": "Bitácora Chayote",
+  "description": "Registra las labores, aplicaciones, riegos, cosechas y ventas de tu huerta de chayote.",
+  "lang": "es-MX",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f7f1",
+  "theme_color": "#246b38"
+}

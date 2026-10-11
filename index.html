@@ -1,0 +1,950 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#246b38">
+  <meta name="description" content="Bitácora de Chayote: registra labores, aplicaciones, riegos, cosechas y ventas de tu huerta.">
+  <title>Bitácora de Chayote</title>
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    :root {
+      --verde: #246b38;
+      --verde-oscuro: #174b27;
+      --verde-claro: #eaf5e9;
+      --fondo: #f4f7f1;
+      --texto: #243128;
+      --gris: #68736b;
+      --borde: #d9e2d8;
+      --blanco: #ffffff;
+      --rojo: #b3261e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--verde);
+      color: white;
+      padding: 22px 16px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.65rem;
+    }
+
+    header p {
+      margin: 5px 0 0;
+      font-size: .95rem;
+    }
+
+    main {
+      width: min(100% - 24px, 760px);
+      margin: 18px auto 35px;
+    }
+
+    .resumen {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .dato {
+      background: var(--blanco);
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      padding: 13px;
+    }
+
+    .dato span {
+      display: block;
+      color: var(--gris);
+      font-size: .82rem;
+    }
+
+    .dato strong {
+      display: block;
+      font-size: 1.25rem;
+      overflow-wrap: anywhere;
+    }
+
+    nav {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+      margin-bottom: 16px;
+    }
+
+    nav button {
+      padding: 11px 5px;
+      font-size: .91rem;
+    }
+
+    button, .boton {
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 15px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--verde);
+      color: white;
+    }
+
+    button:active { transform: scale(.99); }
+
+    button.secundario {
+      background: #e4eee2;
+      color: var(--verde-oscuro);
+      border: 1px solid #cbdcc8;
+    }
+
+    button.peligro { background: var(--rojo); }
+
+    button.activo { background: var(--verde-oscuro); }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .panel {
+      background: var(--blanco);
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: 17px;
+      margin-bottom: 15px;
+    }
+
+    .panel h2 {
+      font-size: 1.25rem;
+      margin: 0 0 12px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 13px 0 5px;
+    }
+
+    input, select, textarea {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #bdcabe;
+      border-radius: 8px;
+      background: white;
+      color: var(--texto);
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .ayuda {
+      color: var(--gris);
+      font-size: .86rem;
+      margin: 5px 0;
+    }
+
+    .fila {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .acciones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .acciones button { flex: 1 1 140px; }
+
+    .registro {
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 13px;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .registro h3 {
+      font-size: 1.05rem;
+      margin: 0 0 4px;
+    }
+
+    .registro p { margin: 6px 0; }
+
+    .etiqueta {
+      display: inline-block;
+      background: var(--verde-claro);
+      color: var(--verde-oscuro);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .resultado {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #f3f7f1;
+      border-radius: 9px;
+      padding: 13px;
+      margin-top: 12px;
+    }
+
+    .oculto { display: none !important; }
+
+    .aviso {
+      padding: 11px;
+      background: #fff5d9;
+      border: 1px solid #ead49a;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .estado {
+      color: var(--gris);
+      font-size: .9rem;
+      min-height: 1.3em;
+      margin-top: 8px;
+    }
+
+    .foto {
+      display: block;
+      max-width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--gris);
+      font-size: .83rem;
+      padding: 10px 15px 25px;
+    }
+
+    @media (max-width: 430px) {
+      nav { grid-template-columns: 1fr; }
+      .fila { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>🌱 Bitácora de Chayote</h1>
+  <p>Tu huerta, tus labores y tus cosechas en un solo lugar</p>
+</header>
+
+<main>
+  <section class="resumen" aria-label="Resumen de cosecha">
+    <div class="dato">
+      <span>Registros guardados</span>
+      <strong id="totalRegistros">0</strong>
+    </div>
+    <div class="dato">
+      <span>Cajas registradas</span>
+      <strong id="totalCajas">0</strong>
+    </div>
+    <div class="dato">
+      <span>Kilos registrados</span>
+      <strong id="totalKilos">0 kg</strong>
+    </div>
+    <div class="dato">
+      <span>Ventas registradas</span>
+      <strong id="totalVentas">$0.00</strong>
+    </div>
+  </section>
+
+  <nav aria-label="Secciones de la aplicación">
+    <button type="button" id="btnRegistrar" class="activo"
+      onclick="mostrarSeccion('registrar')">✍️ Registrar</button>
+    <button type="button" id="btnHistorial"
+      onclick="mostrarSeccion('historial')">📋 Historial</button>
+    <button type="button" id="btnPreguntar"
+      onclick="mostrarSeccion('preguntar')">🎙️ Preguntar</button>
+  </nav>
+
+  <section id="seccionRegistrar" class="panel">
+    <h2>Nuevo registro de la huerta</h2>
+    <p class="ayuda">Anota lo que hiciste, observaste o cosechaste. Los campos con asterisco son obligatorios.</p>
+
+    <form id="formRegistro">
+      <label for="fecha">Fecha *</label>
+      <input type="date" id="fecha" required>
+
+      <label for="tipo">Tipo de registro *</label>
+      <select id="tipo" required>
+        <option value="Observación">Observación de la planta</option>
+        <option value="Aplicación">Aplicación de agroquímicos o foliares</option>
+        <option value="Riego">Riego</option>
+        <option value="Fertilización">Fertilización</option>
+        <option value="Cosecha">Cosecha</option>
+        <option value="Venta">Venta</option>
+        <option value="Plaga o enfermedad">Plaga o enfermedad</option>
+        <option value="Labor">Labor de campo</option>
+        <option value="Otro">Otro</option>
+      </select>
+
+      <label for="descripcion">¿Qué pasó o qué trabajo realizaste? *</label>
+      <textarea id="descripcion" required
+        placeholder="Ejemplo: Se aplicó fertilizante a 100 plantas. La guía nueva está creciendo bien."></textarea>
+
+      <div class="acciones">
+        <button type="button" id="btnVozDescripcion" class="secundario">
+          🎙️ Dictar por voz
+        </button>
+      </div>
+      <p id="estadoVoz" class="estado" aria-live="polite"></p>
+
+      <div class="fila">
+        <div>
+          <label for="cajas">Cajas cosechadas</label>
+          <input type="number" id="cajas" min="0" step="0.1" placeholder="Ej. 25">
+        </div>
+        <div>
+          <label for="kilos">Kilos cosechados</label>
+          <input type="number" id="kilos" min="0" step="0.1" placeholder="Ej. 575">
+        </div>
+      </div>
+
+      <div class="fila">
+        <div>
+          <label for="precio">Precio por caja ($)</label>
+          <input type="number" id="precio" min="0" step="0.01" placeholder="Ej. 180">
+        </div>
+        <div>
+          <label for="cajasVenta">Cajas vendidas</label>
+          <input type="number" id="cajasVenta" min="0" step="0.1" placeholder="Ej. 25">
+        </div>
+      </div>
+
+      <label for="foto">Fotografía (opcional)</label>
+      <input type="file" id="foto" accept="image/*" capture="environment">
+      <p class="ayuda">Las fotografías se reducen para ahorrar espacio. Evita subir muchas fotos grandes.</p>
+
+      <div class="acciones">
+        <button type="submit">💾 Guardar registro</button>
+        <button type="button" id="btnLimpiar" class="secundario">Limpiar campos</button>
+      </div>
+      <p id="estadoGuardar" class="estado" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section id="seccionHistorial" class="panel oculto">
+    <h2>Historial de la huerta</h2>
+    <label for="filtroTipo">Filtrar por tipo</label>
+    <select id="filtroTipo">
+      <option value="">Todos los registros</option>
+      <option>Observación</option>
+      <option>Aplicación</option>
+      <option>Riego</option>
+      <option>Fertilización</option>
+      <option>Cosecha</option>
+      <option>Venta</option>
+      <option>Plaga o enfermedad</option>
+      <option>Labor</option>
+      <option>Otro</option>
+    </select>
+
+    <label for="filtroTexto">Buscar palabras o fechas</label>
+    <input id="filtroTexto" type="search"
+      placeholder="Ej. riego, mosca blanca, 10/10/2026">
+    <div id="listaHistorial"></div>
+
+    <div class="acciones">
+      <button type="button" id="btnExportar">⬇️ Descargar respaldo</button>
+      <button type="button" id="btnImportar" class="secundario">⬆️ Importar respaldo</button>
+      <input type="file" id="archivoImportar" accept=".json,application/json" class="oculto">
+    </div>
+    <p class="ayuda">Guarda respaldos periódicamente. Los datos se almacenan en este navegador.</p>
+    <p id="estadoRespaldo" class="estado" aria-live="polite"></p>
+  </section>
+
+  <section id="seccionPreguntar" class="panel oculto">
+    <h2>Pregúntale a tu bitácora</h2>
+    <p class="ayuda">
+      Haz preguntas sobre los registros guardados, por ejemplo:
+      “¿Cuándo fue el último riego?”, “¿Qué apliqué?” o “¿Cuántas cajas coseché?”.
+    </p>
+
+    <label for="pregunta">Tu pregunta</label>
+    <textarea id="pregunta" placeholder="Escribe tu pregunta aquí..."></textarea>
+    <div class="acciones">
+      <button type="button" id="btnVozPregunta" class="secundario">🎙️ Hablar</button>
+      <button type="button" id="btnConsultar">🔎 Consultar bitácora</button>
+    </div>
+    <p id="estadoPregunta" class="estado" aria-live="polite"></p>
+    <div id="respuesta" class="resultado oculto" aria-live="polite"></div>
+    <div class="acciones">
+      <button type="button" id="btnLeerRespuesta" class="secundario">🔊 Leer respuesta</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Bitácora de Chayote · Versión comercial inicial 1.0<br>
+  Cuida tus registros: descarga respaldos y consérvalos en otro lugar.
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  // IMPORTANTE: esta clave es exclusiva de la aplicación comercial.
+  // No cambiar por la clave de la V3 estable.
+  const DB_KEY = "bitacora_chayote_comercial_v1";
+
+  const $ = (id) => document.getElementById(id);
+
+  let registros = [];
+  let fotoProcesada = "";
+  let respuestaActual = "";
+
+  function fechaLocalISO() {
+    const ahora = new Date();
+    const anio = ahora.getFullYear();
+    const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+    const dia = String(ahora.getDate()).padStart(2, "0");
+    return `${anio}-${mes}-${dia}`;
+  }
+
+  function mostrarFecha(fecha) {
+    if (!fecha) return "Sin fecha";
+    const valor = String(fecha);
+    const iso = valor.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+    const mx = valor.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (mx) return valor;
+    return valor;
+  }
+
+  function normalizarFecha(valor) {
+    if (!valor) return "";
+    const texto = String(valor).trim();
+    let m = texto.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+    m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+    return "";
+  }
+
+  function numero(valor) {
+    const n = Number(valor);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  }
+
+  function moneda(valor) {
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency", currency: "MXN"
+    }).format(numero(valor));
+  }
+
+  function escapar(valor) {
+    return String(valor ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+
+  function leerDB() {
+    try {
+      const contenido = localStorage.getItem(DB_KEY);
+      if (!contenido) return [];
+      const datos = JSON.parse(contenido);
+      return Array.isArray(datos) ? datos.filter(r =>
+        r && typeof r === "object" && r.id && r.fecha && r.tipo
+      ) : [];
+    } catch (error) {
+      console.error("No se pudo leer la bitácora:", error);
+      return [];
+    }
+  }
+
+  function guardarDB(datos) {
+    try {
+      localStorage.setItem(DB_KEY, JSON.stringify(datos));
+      registros = datos;
+      return true;
+    } catch (error) {
+      console.error("No se pudo guardar:", error);
+      alert("No se pudieron guardar los datos. El almacenamiento puede estar lleno. Descarga un respaldo y elimina fotografías o registros que ya no necesites.");
+      return false;
+    }
+  }
+
+  function actualizarResumen() {
+    $("totalRegistros").textContent = registros.length;
+
+    const cajas = registros.reduce((s, r) => s + numero(r.cajas), 0);
+    const kilos = registros.reduce((s, r) => s + numero(r.kilos), 0);
+    const ventas = registros.reduce((s, r) => s + numero(r.totalVenta), 0);
+
+    $("totalCajas").textContent = cajas.toLocaleString("es-MX");
+    $("totalKilos").textContent = `${kilos.toLocaleString("es-MX")} kg`;
+    $("totalVentas").textContent = moneda(ventas);
+  }
+
+  function cargar() {
+    registros = leerDB();
+    $("fecha").value = fechaLocalISO();
+    actualizarResumen();
+    dibujarHistorial();
+  }
+
+  window.mostrarSeccion = function(nombre) {
+    ["registrar", "historial", "preguntar"].forEach(seccion => {
+      $("seccion" + seccion[0].toUpperCase() + seccion.slice(1))
+        .classList.toggle("oculto", seccion !== nombre);
+      $("btn" + seccion[0].toUpperCase() + seccion.slice(1))
+        .classList.toggle("activo", seccion === nombre);
+    });
+
+    if (nombre === "historial") dibujarHistorial();
+    if (nombre === "registrar") $("fecha").value ||= fechaLocalISO();
+  };
+
+  async function comprimirFoto(archivo) {
+    if (!archivo) return "";
+    if (!archivo.type.startsWith("image/")) {
+      throw new Error("El archivo seleccionado no es una imagen.");
+    }
+
+    const url = URL.createObjectURL(archivo);
+    try {
+      const imagen = new Image();
+      imagen.src = url;
+      await new Promise((resolve, reject) => {
+        imagen.onload = resolve;
+        imagen.onerror = () => reject(new Error("No se pudo abrir la fotografía."));
+      });
+
+      const maxLado = 900;
+      const escala = Math.min(1, maxLado / Math.max(imagen.width, imagen.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(imagen.width * escala));
+      canvas.height = Math.max(1, Math.round(imagen.height * escala));
+      const contexto = canvas.getContext("2d");
+      contexto.drawImage(imagen, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL("image/jpeg", 0.72);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  $("foto").addEventListener("change", async () => {
+    fotoProcesada = "";
+    const archivo = $("foto").files[0];
+    if (!archivo) return;
+
+    $("estadoGuardar").textContent = "Preparando fotografía...";
+    try {
+      fotoProcesada = await comprimirFoto(archivo);
+      $("estadoGuardar").textContent = "Fotografía lista.";
+    } catch (error) {
+      $("estadoGuardar").textContent = error.message;
+      $("foto").value = "";
+    }
+  });
+
+  $("formRegistro").addEventListener("submit", (evento) => {
+    evento.preventDefault();
+
+    const fecha = normalizarFecha($("fecha").value);
+    const descripcion = $("descripcion").value.trim();
+
+    if (!fecha || !descripcion) {
+      $("estadoGuardar").textContent = "Escribe una fecha válida y una descripción.";
+      return;
+    }
+
+    const cajas = numero($("cajas").value);
+    const kilos = numero($("kilos").value);
+    const precio = numero($("precio").value);
+    const cajasVenta = numero($("cajasVenta").value);
+    const totalVenta = cajasVenta * precio;
+
+    const registro = {
+      id: (crypto.randomUUID ? crypto.randomUUID() :
+        String(Date.now()) + Math.random().toString(16).slice(2)),
+      fecha,
+      tipo: $("tipo").value,
+      descripcion,
+      cajas,
+      kilos,
+      precio,
+      cajasVenta,
+      totalVenta,
+      foto: fotoProcesada,
+      creado: new Date().toISOString()
+    };
+
+    const nuevos = [...registros, registro];
+    if (!guardarDB(nuevos)) {
+      $("estadoGuardar").textContent = "No se guardó. Revisa el espacio disponible.";
+      return;
+    }
+
+    actualizarResumen();
+    dibujarHistorial();
+    $("estadoGuardar").textContent = "¡Registro guardado correctamente!";
+    $("descripcion").value = "";
+    $("cajas").value = "";
+    $("kilos").value = "";
+    $("precio").value = "";
+    $("cajasVenta").value = "";
+    $("foto").value = "";
+    fotoProcesada = "";
+  });
+
+  $("btnLimpiar").addEventListener("click", () => {
+    $("formRegistro").reset();
+    $("fecha").value = fechaLocalISO();
+    fotoProcesada = "";
+    $("estadoGuardar").textContent = "Campos limpios.";
+  });
+
+  function dibujarHistorial() {
+    const tipo = $("filtroTipo").value;
+    const consulta = normalizarTexto($("filtroTexto").value);
+    const lista = [...registros]
+      .filter(r => !tipo || r.tipo === tipo)
+      .filter(r => {
+        const contenido = normalizarTexto([
+          r.fecha, mostrarFecha(r.fecha), r.tipo, r.descripcion,
+          r.cajas, r.kilos, r.precio, r.cajasVenta, r.totalVenta
+        ].join(" "));
+        return !consulta || contenido.includes(consulta);
+      })
+      .sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
+
+    const contenedor = $("listaHistorial");
+    if (!lista.length) {
+      contenedor.innerHTML = '<p class="ayuda">No hay registros que coincidan con la búsqueda.</p>';
+      return;
+    }
+
+    contenedor.innerHTML = lista.map(r => `
+      <article class="registro">
+        <span class="etiqueta">${escapar(r.tipo)}</span>
+        <h3>${escapar(mostrarFecha(r.fecha))}</h3>
+        <p>${escapar(r.descripcion)}</p>
+        ${r.cajas ? `<p><strong>Cajas cosechadas:</strong> ${escapar(r.cajas)}</p>` : ""}
+        ${r.kilos ? `<p><strong>Kilos:</strong> ${escapar(r.kilos)}</p>` : ""}
+        ${r.cajasVenta ? `<p><strong>Venta:</strong> ${escapar(r.cajasVenta)} cajas × ${escapar(moneda(r.precio))} = ${escapar(moneda(r.totalVenta))}</p>` : ""}
+        ${r.foto ? `<img class="foto" src="${escapar(r.foto)}" alt="Fotografía del registro">` : ""}
+        <div class="acciones">
+          <button type="button" class="secundario" data-editar="${escapar(r.id)}">Editar</button>
+          <button type="button" class="peligro" data-eliminar="${escapar(r.id)}">Eliminar</button>
+        </div>
+      </article>
+    `).join("");
+  }
+
+  $("filtroTipo").addEventListener("change", dibujarHistorial);
+  $("filtroTexto").addEventListener("input", dibujarHistorial);
+
+  $("listaHistorial").addEventListener("click", (evento) => {
+    const botonEliminar = evento.target.closest("[data-eliminar]");
+    const botonEditar = evento.target.closest("[data-editar]");
+
+    if (botonEliminar) {
+      const id = botonEliminar.dataset.eliminar;
+      const registro = registros.find(r => r.id === id);
+      if (!registro) return;
+      if (!confirm(`¿Eliminar el registro del ${mostrarFecha(registro.fecha)}? Esta acción no se puede deshacer.`)) return;
+
+      const nuevos = registros.filter(r => r.id !== id);
+      if (guardarDB(nuevos)) {
+        actualizarResumen();
+        dibujarHistorial();
+      }
+    }
+
+    if (botonEditar) {
+      const registro = registros.find(r => r.id === botonEditar.dataset.editar);
+      if (!registro) return;
+      $("fecha").value = normalizarFecha(registro.fecha);
+      $("tipo").value = registro.tipo;
+      $("descripcion").value = registro.descripcion || "";
+      $("cajas").value = registro.cajas || "";
+      $("kilos").value = registro.kilos || "";
+      $("precio").value = registro.precio || "";
+      $("cajasVenta").value = registro.cajasVenta || "";
+      fotoProcesada = registro.foto || "";
+
+      // Se quita el registro original y se vuelve a guardar desde el formulario.
+      // Si el usuario cancela la edición, el original ya no estará guardado.
+      // Por eso se pide confirmación antes de continuar.
+      if (confirm("Al continuar, el registro original se quitará y podrás guardarlo de nuevo con los cambios. ¿Continuar?")) {
+        if (guardarDB(registros.filter(r => r.id !== registro.id))) {
+          mostrarSeccion("registrar");
+          $("estadoGuardar").textContent = "Edita los campos y guarda para completar el cambio.";
+          actualizarResumen();
+          dibujarHistorial();
+        }
+      } else {
+        fotoProcesada = "";
+      }
+    }
+  });
+
+  function normalizarTexto(texto) {
+    return String(texto ?? "")
+      .toLocaleLowerCase("es-MX")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[¿?¡!,.;:]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function responderPregunta(pregunta) {
+    const q = normalizarTexto(pregunta);
+    if (!q) return "Escribe o dicta una pregunta para consultar tu bitácora.";
+    if (!registros.length) return "Todavía no hay registros guardados en esta bitácora.";
+
+    let tipos = null;
+
+    if (/\b(riego|regar|regue|regaron|irrigacion|irrigar)\b/.test(q)) {
+      tipos = ["Riego"];
+    } else if (/\b(aplique|aplicacion|fumigue|fumigacion|foliar|agroquimico|fungicida|insecticida)\b/.test(q)) {
+      tipos = ["Aplicación"];
+    } else if (/\b(fertilizante|fertilizacion|fertilice|nutricion)\b/.test(q)) {
+      tipos = ["Fertilización"];
+    } else if (/\b(cosecha|coseche|cajas|kilos|produccion)\b/.test(q)) {
+      tipos = ["Cosecha", "Venta"];
+    } else if (/\b(plaga|enfermedad|hongo|pudricion|secadera|insecto)\b/.test(q)) {
+      tipos = ["Plaga o enfermedad", "Observación"];
+    }
+
+    let encontrados = [...registros];
+    if (tipos) encontrados = encontrados.filter(r => tipos.includes(r.tipo));
+
+    const palabras = q.split(" ").filter(p =>
+      p.length > 3 && ![
+        "cuando","cuales","cual","ultimo","ultima","ultimos","ultimas",
+        "dime","decirme","quiero","saber","tengo","hubo","hice","hizo",
+        "fue","fueron","esta","estan","sobre","desde","hasta","cuanto",
+        "cuantos","cuantas","como","donde","para","chayote","huerta",
+        "registros","bitacora","aplique","aplicacion","riego","regar",
+        "cosecha","cajas","kilos"
+      ].includes(p)
+    );
+
+    if (palabras.length) {
+      const porPalabras = encontrados.filter(r => {
+        const texto = normalizarTexto(`${r.tipo} ${r.descripcion}`);
+        return palabras.some(p => texto.includes(p));
+      });
+      if (porPalabras.length) encontrados = porPalabras;
+    }
+
+    encontrados.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
+
+    if (!encontrados.length) {
+      return "No encontré registros que coincidan con esa pregunta. Prueba con una palabra más sencilla o revisa el Historial.";
+    }
+
+    const preguntaUltimo = /\b(ultimo|ultima|reciente|recientemente|cuando fue|cuando hice|cuando aplique|cuando regue)\b/.test(q);
+    if (preguntaUltimo) encontrados = encontrados.slice(0, 1);
+    else encontrados = encontrados.slice(0, 10);
+
+    const lineas = encontrados.map(r => {
+      let linea = `${mostrarFecha(r.fecha)} — ${r.tipo}: ${r.descripcion}`;
+      if (r.cajas) linea += ` | Cajas: ${r.cajas}`;
+      if (r.kilos) linea += ` | Kilos: ${r.kilos}`;
+      if (r.totalVenta) linea += ` | Venta: ${moneda(r.totalVenta)}`;
+      return linea;
+    });
+
+    if (/\b(cuantas cajas|cuantas coseche|total de cajas|cajas en total)\b/.test(q)) {
+      const total = registros.reduce((s,r) => s + numero(r.cajas), 0);
+      return `En todos tus registros aparecen ${total.toLocaleString("es-MX")} cajas cosechadas.\n\nRegistros relacionados:\n${lineas.join("\n")}`;
+    }
+
+    if (/\b(cuantos kilos|kilos en total|total de kilos)\b/.test(q)) {
+      const total = registros.reduce((s,r) => s + numero(r.kilos), 0);
+      return `En todos tus registros aparecen ${total.toLocaleString("es-MX")} kilos cosechados.\n\nRegistros relacionados:\n${lineas.join("\n")}`;
+    }
+
+    if (/\b(ventas totales|cuanto vendi|cuanto vendimos|dinero de ventas)\b/.test(q)) {
+      const total = registros.reduce((s,r) => s + numero(r.totalVenta), 0);
+      return `La suma de las ventas registradas es ${moneda(total)}.\n\nRegistros relacionados:\n${lineas.join("\n")}`;
+    }
+
+    return `Encontré estos registros relacionados:\n\n${lineas.join("\n")}\n\nNota: esta búsqueda consulta los datos guardados en tu dispositivo; no es una inteligencia artificial conectada a internet.`;
+  }
+
+  $("btnConsultar").addEventListener("click", () => {
+    respuestaActual = responderPregunta($("pregunta").value);
+    $("respuesta").textContent = respuestaActual;
+    $("respuesta").classList.remove("oculto");
+    $("estadoPregunta").textContent = "Consulta terminada.";
+  });
+
+  $("btnExportar").addEventListener("click", () => {
+    try {
+      const respaldo = {
+        nombre: "Bitácora de Chayote",
+        version: 1,
+        fechaExportacion: new Date().toISOString(),
+        registros
+      };
+      const blob = new Blob([JSON.stringify(respaldo, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = `respaldo-bitacora-chayote-${fechaLocalISO()}.json`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      URL.revokeObjectURL(url);
+      $("estadoRespaldo").textContent = "Respaldo preparado para descargar.";
+    } catch (error) {
+      $("estadoRespaldo").textContent = "No se pudo crear el respaldo.";
+    }
+  });
+
+  $("btnImportar").addEventListener("click", () => $("archivoImportar").click());
+
+  $("archivoImportar").addEventListener("change", async (evento) => {
+    const archivo = evento.target.files[0];
+    if (!archivo) return;
+
+    try {
+      const texto = await archivo.text();
+      const contenido = JSON.parse(texto);
+      const datos = Array.isArray(contenido) ? contenido : contenido.registros;
+
+      if (!Array.isArray(datos) || !datos.every(r =>
+        r && typeof r === "object" && r.fecha && r.tipo && r.descripcion !== undefined
+      )) {
+        throw new Error("El archivo no tiene el formato esperado.");
+      }
+
+      if (!confirm(`Se encontraron ${datos.length} registros. Importar reemplazará los registros actuales de esta aplicación. ¿Continuar?`)) return;
+
+      const limpios = datos.map(r => ({
+        id: String(r.id || (Date.now() + Math.random())),
+        fecha: normalizarFecha(r.fecha) || fechaLocalISO(),
+        tipo: String(r.tipo || "Otro"),
+        descripcion: String(r.descripcion || ""),
+        cajas: numero(r.cajas),
+        kilos: numero(r.kilos),
+        precio: numero(r.precio),
+        cajasVenta: numero(r.cajasVenta),
+        totalVenta: numero(r.totalVenta),
+        foto: typeof r.foto === "string" && r.foto.startsWith("data:image/") ? r.foto : "",
+        creado: String(r.creado || "")
+      }));
+
+      if (guardarDB(limpios)) {
+        actualizarResumen();
+        dibujarHistorial();
+        $("estadoRespaldo").textContent = "Respaldo importado correctamente.";
+      }
+    } catch (error) {
+      $("estadoRespaldo").textContent = `No se pudo importar: ${error.message}`;
+    } finally {
+      $("archivoImportar").value = "";
+    }
+  });
+
+  function iniciarDictado(destino, estado) {
+    const API = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!API) {
+      $(estado).textContent = "El dictado por voz no está disponible en este navegador. Puedes escribir el texto.";
+      return;
+    }
+
+    const reconocimiento = new API();
+    reconocimiento.lang = "es-MX";
+    reconocimiento.continuous = false;
+    reconocimiento.interimResults = false;
+    $(estado).textContent = "Escuchando... habla ahora.";
+
+    reconocimiento.onresult = (evento) => {
+      const texto = evento.results[0][0].transcript;
+      const campo = $(destino);
+      campo.value = campo.value.trim()
+        ? `${campo.value.trim()} ${texto}`
+        : texto;
+      $(estado).textContent = "Dictado recibido.";
+    };
+
+    reconocimiento.onerror = (evento) => {
+      const mensajes = {
+        "not-allowed": "No se concedió permiso para usar el micrófono.",
+        "no-speech": "No se detectó voz. Intenta nuevamente.",
+        "network": "El servicio de voz tuvo un problema de conexión."
+      };
+      $(estado).textContent = mensajes[evento.error] || `No se pudo completar el dictado (${evento.error}).`;
+    };
+
+    reconocimiento.onend = () => {
+      if ($(estado).textContent === "Escuchando... habla ahora.") {
+        $(estado).textContent = "Dictado finalizado.";
+      }
+    };
+
+    try {
+      reconocimiento.start();
+    } catch (error) {
+      $(estado).textContent = "No se pudo iniciar el micrófono. Espera un momento e inténtalo otra vez.";
+    }
+  }
+
+  $("btnVozDescripcion").addEventListener("click", () =>
+    iniciarDictado("descripcion", "estadoVoz")
+  );
+
+  $("btnVozPregunta").addEventListener("click", () =>
+    iniciarDictado("pregunta", "estadoPregunta")
+  );
+
+  $("btnLeerRespuesta").addEventListener("click", () => {
+    if (!respuestaActual) {
+      $("estadoPregunta").textContent = "Primero realiza una consulta.";
+      return;
+    }
+    if (!("speechSynthesis" in window)) {
+      $("estadoPregunta").textContent = "La lectura en voz alta no está disponible en este navegador.";
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const lectura = new SpeechSynthesisUtterance(respuestaActual);
+    lectura.lang = "es-MX";
+    lectura.rate = 0.95;
+    window.speechSynthesis.speak(lectura);
+  });
+
+  cargar();
+})();
+</script>
+</body>
+</html>
